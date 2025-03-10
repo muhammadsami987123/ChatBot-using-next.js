@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FiUser, FiClock } from 'react-icons/fi'
+import { FiClock } from 'react-icons/fi'
 import UserProfileView from './UserProfileView'
 
 interface ChatMessageProps {

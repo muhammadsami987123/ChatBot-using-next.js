@@ -1,18 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FiList } from 'react-icons/fi'
 import Chat from './components/Chat'
 import Sidebar from './components/Sidebar'
 import ChatHistory from './components/ChatHistory'
 import MobileChatHistory from './components/MobileChatHistory'
 
-export default function Home() {
+// Define the Message type correctly
+type Message = {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
+}
+
+type ChatSession = {
+  id: string
+  title: string
+  messages: Message[]
+  lastUpdated: Date
+  preview: string
+}
+
+// Create a wrapper component for the search params functionality
+function ChatWrapper() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [currentChatId, setCurrentChatId] = useState<string>('new')
-  const [updateTrigger, setUpdateTrigger] = useState<number>(0)
   const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false)
+  const [updateTrigger, setUpdateTrigger] = useState<number>(0)
   
   // Get chat ID from URL on initial load
   useEffect(() => {
@@ -24,14 +41,14 @@ export default function Home() {
   
   // Handle selecting a chat from history
   const handleSelectChat = (chatId: string) => {
+    router.push(`/?chat=${chatId}`)
     setCurrentChatId(chatId)
-    window.history.pushState({}, '', `/?chat=${chatId}`)
   }
   
   // Handle creating a new chat
   const handleNewChat = () => {
+    router.push('/')
     setCurrentChatId('new')
-    window.history.pushState({}, '', '/')
   }
   
   // Handle deleting a chat
@@ -39,17 +56,19 @@ export default function Home() {
     try {
       const savedChats = localStorage.getItem('chatHistory')
       if (savedChats) {
-        const chats = JSON.parse(savedChats)
-        const updatedChats = chats.filter((chat: any) => chat.id !== chatId)
+        const chats: ChatSession[] = JSON.parse(savedChats)
+        const updatedChats = chats.filter((chat) => chat.id !== chatId)
+        
         localStorage.setItem('chatHistory', JSON.stringify(updatedChats))
         
         // If we're deleting the current chat, switch to a new chat
-        if (chatId === currentChatId) {
-          handleNewChat()
+        if (currentChatId === chatId) {
+          router.push('/')
+          setCurrentChatId('new')
         }
         
-        // Trigger update of chat list
-        setUpdateTrigger(prev => prev + 1)
+        // Trigger re-render of chat history
+        handleUpdateChatList()
       }
     } catch (error) {
       console.error('Error deleting chat:', error)
@@ -63,8 +82,11 @@ export default function Home() {
   
   return (
     <main className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="hidden md:block w-64">
+      <div className="w-16 md:w-16 flex-shrink-0">
+        <Sidebar />
+      </div>
+      
+      <div className="hidden md:block w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-700">
         <ChatHistory 
           currentChatId={currentChatId}
           onSelectChat={handleSelectChat}
@@ -73,7 +95,8 @@ export default function Home() {
           key={updateTrigger} // Force re-render when chat list changes
         />
       </div>
-      <div className="flex-1 md:ml-64 w-full relative">
+      
+      <div className="flex-1 relative">
         {/* Mobile history button */}
         <button
           className="md:hidden fixed top-4 right-4 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md"
@@ -99,5 +122,18 @@ export default function Home() {
         />
       </div>
     </main>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    }>
+      <ChatWrapper />
+    </Suspense>
   )
 } 

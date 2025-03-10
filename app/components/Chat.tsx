@@ -6,7 +6,6 @@ import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
 import TypingIndicator from './TypingIndicator'
 import DateSeparator from './DateSeparator'
-import { motion } from 'framer-motion'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -183,7 +182,7 @@ export default function Chat({ currentChatId, onUpdateChatList }: ChatProps) {
     setMessages(updatedMessages)
     
     // Save chat after adding user message
-    const chatId = saveChat(updatedMessages)
+    // const chatId = saveChat(updatedMessages)
     
     // Set loading state
     setIsLoading(true)

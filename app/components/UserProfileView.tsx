@@ -1,5 +1,5 @@
 'use client'
-
+import Image from 'next/image'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiX, FiUser, FiMessageSquare } from 'react-icons/fi'
@@ -65,7 +65,7 @@ export default function UserProfileView({
             <div className="flex flex-col items-center mb-6">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-md mb-4">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+                  <Image src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                 ) : (
                   <FiUser className="w-10 h-10 text-white" />
                 )}
